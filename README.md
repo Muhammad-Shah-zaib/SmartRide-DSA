@@ -8,11 +8,11 @@ The SmartRide project is designed to implement the core functionalities of a rid
 ## Current File structure
 
 ``` md
-SmartRide/
+SmartRide.ConsoleApp/
+├── Program.cs         # Entry point of the application
+├── Models             # DataBase context (via scaffold)
 ├── src/
-│   ├── SmartRide.ConsoleApp/    # Your main console application
-│   │   ├── Program.cs           # Entry point of the application
-│   │   ├── Models/              # Contains your data models (e.g., User, Driver, Ride)
+│   │   ├── Dtos/                # Contains your data models (e.g., User, Driver, Ride)
 │   │   ├── Services/            # Contains services for handling business logic
 │   │   ├── DataStructures/      # Custom implementations of data structures
 │   │   ├── Utilities/           # Helper utilities (e.g., algorithms for pathfinding)
@@ -21,5 +21,5 @@ SmartRide/
 │       ├── UnitTests/           # Unit tests for each feature
 ├── docs/                        # Documentation folder
 ├── .gitignore                   # Ignored files/folders for version control
-├── README.md                    # Project overview and usage
+├── README.md                    # Project overview
 ```
