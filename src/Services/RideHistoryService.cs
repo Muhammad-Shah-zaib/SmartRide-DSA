@@ -1,6 +1,4 @@
-﻿using SmartRide.src.DataStructures;
-
-namespace SmartRide.src.Services;
+﻿namespace SmartRide.src.Services;
 
 public class RideHistoryService
 {
