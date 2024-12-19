@@ -30,7 +30,11 @@ public class HashMap<TKey, TValue>
 
     private int GetBucketIndex(TKey key)
     {
-        return Math.Abs(key.GetHashCode()) % _capacity;
+        if (key != null) 
+            return Math.Abs(key.GetHashCode()) % _capacity;
+        
+        Console.WriteLine("Key provided is empty");
+        return -1;
     }
 
     public void Put(TKey key, TValue value)
@@ -63,7 +67,6 @@ public class HashMap<TKey, TValue>
 
         return default; // return null or default
     }
-
 
     public bool Remove(TKey key)
     {
@@ -107,5 +110,21 @@ public class HashMap<TKey, TValue>
             }
         }
         return string.Join(Environment.NewLine, result);
+    }
+
+    // New ToList function
+    public List<(TKey Key, TValue Value)> ToList()
+    {
+        var list = new List<(TKey Key, TValue Value)>();
+
+        foreach (var bucket in _buckets)
+        {
+            foreach (var node in bucket)
+            {
+                list.Add((node.Key, node.Value));
+            }
+        }
+
+        return list;
     }
 }
