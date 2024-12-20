@@ -1,42 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
+using SmartRide.src.DataStructures;
 
 namespace SmartRide.src.DataStructures
 {
     public class Queues<T>
     {
-        //Tracks the front and back of the Queue
-        private QueueNode? _head;
-        private QueueNode? _tail;
-        private int _count;//Count of the requests
-        
-        public class QueueNode
+        private readonly DoublyLinkedList<T> _list = new();
+
+        public void Enqueue(T item)
         {
-            public T Data;
-            public QueueNode Next;
-            public QueueNode Previous;
+            // Add the item to the end of the doubly linked list
+            _list.AddLast(item);
         }
 
-        public void Enqueue(T node)
-        {
-            var newnode = new QueueNode();
-            newnode.Data = node;
-            if (_head == null)
-            {
-                _head=_tail = newnode;
-            }
-            else { 
-                _tail.Next = newnode;
-                newnode.Previous = _tail;
-                _tail = newnode;
-            }
-            _count++;
-            
-        }
         public T Dequeue()
         {
             if (IsEmpty())
@@ -44,43 +20,31 @@ namespace SmartRide.src.DataStructures
                 throw new InvalidOperationException("The Queue is empty");
             }
 
-            var removedData = _head.Data;
+            // Get the first item from the linked list
+            var headData = _list.ToList().First();
 
-            if (_head == _tail)
-            {
-                // If there's only one element, reset both head and tail
-                _head = _tail = null;
-            }
-            else
-            {
-                // Move the head to the next node
-                _head = _head.Next;
-                _head.Previous = null;
-            }
+            // Remove the head node
+            _list.Remove(headData);
 
-            _count--;
-            return removedData;
+            return headData;
         }
-
-        
-
 
         public T Peek()
         {
-            
-            if(IsEmpty())
+            if (IsEmpty())
             {
                 throw new InvalidOperationException("The Queue is empty");
-
             }
 
-            var top_data = _head.Data;
-            return top_data;
+            // Return the first item without removing it
+            return _list.ToList().First();
         }
 
         public bool IsEmpty()
         {
-            return _head == null;
+            return !_list.ToList().Any();
         }
+
+        public int Count => _list.Count;
     }
 }

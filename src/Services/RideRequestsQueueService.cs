@@ -40,6 +40,10 @@ namespace SmartRide.src.Services
 
             }
         }
+        public int GetPendingRequestsCount()
+        {
+            return _rideRequests.Count;
+        }
     }
 }
 
