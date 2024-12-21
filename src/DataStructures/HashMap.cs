@@ -1,130 +1,187 @@
-﻿namespace SmartRide.src.DataStructures;
-
-public class HashMap<TKey, TValue>
+﻿namespace SmartRide.src.DataStructures
 {
-    private class HashNode(TKey key, TValue value)
+    public class HashMap<TKey, TValue>
     {
-        public TKey Key { get; set; } = key;
-        public TValue Value { get; set; } = value;
-        public HashNode Next { get; set; }
-
-        public HashNode(TKey key, TValue value, HashNode next) : this(key, value)
+        private class HashNode
         {
-            Next = next;
+            public TKey Key { get; set; }
+            public TValue Value { get; set; }
+            public HashNode? Next { get; set; }
+
+            public HashNode(TKey key, TValue value, HashNode? next = null)
+            {
+                Key = key;
+                Value = value;
+                Next = next;
+            }
         }
-    }
 
-    private readonly int _capacity;
-    private readonly LinkedList<HashNode>[] _buckets;
+        private readonly int _capacity;
+        private readonly LinkedList<HashNode>[] _buckets;
+        private int _size;
 
-    public HashMap(int capacity)
-    {
-        _capacity = capacity;
-        _buckets = new LinkedList<HashNode>[capacity];
-
-        for (int i = 0; i < _capacity; i++)
+        public HashMap(int capacity = 100)
         {
-            _buckets[i] = new LinkedList<HashNode>();
-        }
-    }
+            _capacity = capacity;
+            _buckets = new LinkedList<HashNode>[capacity];
+            _size = 0;
 
-    private int GetBucketIndex(TKey key)
-    {
-        if (key != null) 
+            for (int i = 0; i < _capacity; i++)
+            {
+                _buckets[i] = new LinkedList<HashNode>();
+            }
+        }
+
+        private int GetBucketIndex(TKey key)
+        {
+            if (key == null)
+                throw new ArgumentNullException(nameof(key), "Key cannot be null");
+
             return Math.Abs(key.GetHashCode()) % _capacity;
-        
-        Console.WriteLine("Key provided is empty");
-        return -1;
-    }
-
-    public void Put(TKey key, TValue value)
-    {
-        int bucketIndex = GetBucketIndex(key);
-        foreach (var node in _buckets[bucketIndex])
-        {
-            if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
-            {
-                node.Value = value; // Update existing value
-                return;
-            }
         }
 
-        // Add new node if key not found
-        _buckets[bucketIndex].AddLast(new HashNode(key, value));
-    }
-
-    public TValue? Get(TKey key)
-    {
-        int bucketIndex = GetBucketIndex(key);
-
-        foreach (var node in _buckets[bucketIndex])
+        public void Put(TKey key, TValue value)
         {
-            if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+            if (key == null)
+                throw new ArgumentNullException(nameof(key), "Key cannot be null");
+
+            int bucketIndex = GetBucketIndex(key);
+
+            foreach (var node in _buckets[bucketIndex])
             {
-                return node.Value;
+                if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+                {
+                    node.Value = value; // Update existing value
+                    return;
+                }
             }
+
+            // Add new node if key not found
+            _buckets[bucketIndex].AddLast(new HashNode(key, value));
+            _size++;
         }
 
-        return default; // return null or default
-    }
-
-    public bool Remove(TKey key)
-    {
-        int bucketIndex = GetBucketIndex(key);
-        var bucket = _buckets[bucketIndex];
-
-        foreach (var node in bucket)
+        public TValue? Get(TKey key)
         {
-            if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+            if (key == null)
+                throw new ArgumentNullException(nameof(key), "Key cannot be null");
+
+            int bucketIndex = GetBucketIndex(key);
+
+            foreach (var node in _buckets[bucketIndex])
             {
-                bucket.Remove(node);
-                return true;
+                if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+                {
+                    return node.Value;
+                }
             }
+
+            return default; // Key not found
         }
 
-        return false; // Key not found
-    }
-
-    public bool ContainsKey(TKey key)
-    {
-        int bucketIndex = GetBucketIndex(key);
-        foreach (var node in _buckets[bucketIndex])
+        public bool Remove(TKey key)
         {
-            if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
-            {
-                return true;
-            }
-        }
+            if (key == null)
+                throw new ArgumentNullException(nameof(key), "Key cannot be null");
 
-        return false;
-    }
+            int bucketIndex = GetBucketIndex(key);
+            var bucket = _buckets[bucketIndex];
 
-    public override string ToString()
-    {
-        var result = new List<string>();
-        foreach (var bucket in _buckets)
-        {
             foreach (var node in bucket)
             {
-                result.Add($"{node.Key} : {node.Value}");
+                if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+                {
+                    bucket.Remove(node);
+                    _size--;
+                    return true;
+                }
             }
+
+            return false; // Key not found
         }
-        return string.Join(Environment.NewLine, result);
-    }
 
-    // New ToList function
-    public List<(TKey Key, TValue Value)> ToList()
-    {
-        var list = new List<(TKey Key, TValue Value)>();
-
-        foreach (var bucket in _buckets)
+        public bool ContainsKey(TKey key)
         {
-            foreach (var node in bucket)
+            if (key == null)
+                throw new ArgumentNullException(nameof(key), "Key cannot be null");
+
+            int bucketIndex = GetBucketIndex(key);
+
+            foreach (var node in _buckets[bucketIndex])
             {
-                list.Add((node.Key, node.Value));
+                if (EqualityComparer<TKey>.Default.Equals(node.Key, key))
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
 
-        return list;
+        public List<TKey> Keys()
+        {
+            var keys = new List<TKey>();
+            foreach (var bucket in _buckets)
+            {
+                foreach (var node in bucket)
+                {
+                    keys.Add(node.Key);
+                }
+            }
+            return keys;
+        }
+
+        public List<TValue> Values()
+        {
+            var values = new List<TValue>();
+            foreach (var bucket in _buckets)
+            {
+                foreach (var node in bucket)
+                {
+                    values.Add(node.Value);
+                }
+            }
+            return values;
+        }
+
+        public List<(TKey Key, TValue Value)> ToList()
+        {
+            var list = new List<(TKey Key, TValue Value)>();
+            foreach (var bucket in _buckets)
+            {
+                foreach (var node in bucket)
+                {
+                    list.Add((node.Key, node.Value));
+                }
+            }
+            return list;
+        }
+
+        public int Size()
+        {
+            return _size;
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < _capacity; i++)
+            {
+                _buckets[i].Clear();
+            }
+            _size = 0;
+        }
+
+        public override string ToString()
+        {
+            var result = new List<string>();
+            foreach (var bucket in _buckets)
+            {
+                foreach (var node in bucket)
+                {
+                    result.Add($"{node.Key} : {node.Value}");
+                }
+            }
+            return string.Join(Environment.NewLine, result);
+        }
     }
 }
