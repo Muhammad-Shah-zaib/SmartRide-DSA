@@ -10,7 +10,6 @@ namespace SmartRide.src.Services
 {
     public class RideRequestsQueueService
     {
-
         private readonly SmartRideDbContext _dbContext;
         private readonly Queue<RideRequestDto> _rideRequests;
         public RideRequestsQueueService(SmartRideDbContext dbContext) { 
@@ -31,11 +30,12 @@ namespace SmartRide.src.Services
                     UserId = ride.UserId,
                     Source = ride.Source,
                     Destination = ride.Destination,
-                    Status = ride.Status,
+                    Status = true,
                     RideTime = ride.RideTime
                 };
+                
+                // adding the ride into the DB
                 _dbContext.CompletedRides.Add(completedRide);
-
                 _dbContext.SaveChanges();
 
             }
