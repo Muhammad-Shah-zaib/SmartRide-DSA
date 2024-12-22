@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SmartRide.src.DataStructures;
-using SmartRide.src.Dtos;
-using SmartRide.Models;
-namespace SmartRide.src.Services
+﻿namespace SmartRide.src.Services
 {
     public class RideRequestsQueueService
     {
