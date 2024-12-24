@@ -1,17 +1,9 @@
-﻿global using SmartRide.Models;
+global using SmartRide.Models;
 global using SmartRide.src.Dtos;
 global using SmartRide.src.Services;
 global using SmartRide.src.DataStructures;
 global using Microsoft.EntityFrameworkCore;
-using SmartRide.src.Utilities.GraphAlgos;
+global using Microsoft.EntityFrameworkCore;
+global using SmartRide.src.Utilities;
 
-namespace SmartRide
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            
-        }
-    }
-}
+Console.WriteLine("Pika Pika");
