@@ -18,6 +18,7 @@ public class Graph<T>
         }
     }
 
+
     // Adds an edge between two nodes
     public void AddEdge(T from, T to, double weight, bool isTwoWay = false)
     {
@@ -45,6 +46,11 @@ public class Graph<T>
         return _adjacencyList.Get(node)!;
     }
 
+    public IEnumerable<T> GetAllNodes()
+    {
+        return _adjacencyList.Keys();
+    }
+
     // Clears the entire graph
     public void Clear()
     {
@@ -53,6 +59,33 @@ public class Graph<T>
             _adjacencyList.Get(key).Clear();
         }
     }
+
+    public bool ContainsNode(T node)
+    {
+        return _adjacencyList.ContainsKey(node);
+        
+    }
+
+    //weight of edge between two nodes
+    public double GetEdgeWeight(T from, T to)
+    {
+        if (_adjacencyList.ContainsKey(from))
+        {
+            var neighbors = _adjacencyList.Get(from);
+            foreach (var (neighbor, weight) in neighbors)
+            {
+                if (neighbor.Equals(to))
+                    return weight;
+            }
+        }
+
+        // Return a default value (or throw an exception) if no edge exists
+        throw new ArgumentException($"No edge exists between {from} and {to}");
+    }
+
+
+
+
 
     // Prints the adjacency list representation of the graph
     public void PrintGraph()
