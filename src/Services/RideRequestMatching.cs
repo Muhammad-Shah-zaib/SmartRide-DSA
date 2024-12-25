@@ -17,7 +17,8 @@ namespace SmartRide.src.Services
         public void RequestMatching(Graph<T> map, T driver, T user)
         {
             var shortestpath = new ShortestPath<T>();
-            var path = shortestpath.Dijsktra(map, driver, user);
+            var totalCost = 0.0;
+            var path = shortestpath.Dijsktra(map, driver, user, ref totalCost);
 
             double distance = 0;
             if (path != null && path.Count > 1)
