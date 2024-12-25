@@ -9,9 +9,6 @@ namespace SmartRide
 {
     class Program
     {
-        static void Main(string[] args)
-        {
-            
-        }
+
     }
 }
