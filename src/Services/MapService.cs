@@ -2,7 +2,7 @@
 {
     public class MapService
     {
-        private readonly Graph<string> _graph;
+        public readonly Graph<string> _graph;
         private readonly SmartRideDbContext _context;
 
         public MapService(SmartRideDbContext context)
@@ -49,7 +49,6 @@
                 _graph.AddEdge(destination, source, weight);
             }
         }
-
         public void LoadGraphFromDatabase()
         {
             // Clear current graph
@@ -59,15 +58,16 @@
             var nodes = _context.Nodes.ToList();
             foreach (var node in nodes)
             {
-                _graph.AddVertex(node.Name);
+                _graph.AddVertex(node.Name.ToUpper());
             }
 
             // Load edges from the database
             var edges = _context.Edges.ToList();
             foreach (var edge in edges)
             {
-                var source = nodes.First(n => n.Id == edge.SourceId).Name;
-                var destination = nodes.First(n => n.Id == edge.DestinationId).Name;
+                Console.WriteLine($"{edge.Source.Name.ToUpper()} -> {edge.Destination.Name.ToUpper()} -- {edge.IsOneWay}");
+                var source = edge.Source.Name.ToUpper();
+                var destination = edge.Destination.Name.ToUpper();
 
                 _graph.AddEdge(source, destination, (double)edge.Weight);
                 if (!edge.IsOneWay)
