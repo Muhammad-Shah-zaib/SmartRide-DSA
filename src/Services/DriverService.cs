@@ -15,20 +15,44 @@ public class DriverService
         // Load data from the database into the HashMap
         LoadDriversFromDb();
     }
-
     private void LoadDriversFromDb()
     {
         var drivers = _dbContext.Drivers.ToList();
         foreach (var driver in drivers)
         {
-            _driverMap.Put(driver.Email, new DriverDto() {
+            // Set current position based on driver's Id
+            var currentPositionName = driver.Id switch
+            {
+                1 => "GATE-1".ToUpper(),
+                2 => "GATE-2".ToUpper(),
+                3 => "SUPREME COURT".ToUpper(),
+                _ => "WADERA CHOWK0.ToUpper()" // Default to empty string if not matching any of the specified IDs
+            };
+
+            var currentPositionType = driver.Id switch
+            {
+                1 => "TOWN-GATE".ToUpper(),
+                2 => "TOWN-GATE".ToUpper(),
+                3 => "MAIN OFFICE".ToUpper(),
+                _ => "CHOWK".ToUpper()
+            };
+
+            // Add driver data to the map
+            _driverMap.Put(driver.Email, new DriverDto()
+            {
                 Id = driver.Id,
                 Name = driver.Name,
                 LicenseNumber = driver.Licensenumber,
                 Rating = driver.Rating.HasValue ? (double)driver.Rating.Value : 0.0,
+                CurrentPosition = new Node()
+                {
+                    Name = currentPositionName,
+                    Type = currentPositionType
+                }
             });
         }
     }
+
 
     public void AddDriver(DriverDto driver)
     {

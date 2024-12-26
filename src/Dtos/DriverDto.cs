@@ -14,5 +14,9 @@ public class DriverDto : IComparable<DriverDto>
     {
         throw new NotImplementedException();
     }
+    public Node CurrentPosition { get; set; } = new Node(); // current node
+    
 }
+
+
 
