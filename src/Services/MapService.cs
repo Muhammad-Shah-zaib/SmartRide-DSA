@@ -9,6 +9,8 @@
         {
             _graph = new Graph<string>();
             _context = context;
+
+            this.LoadGraphFromDatabase();
         }
 
         public void AddNode(string name, string type)
