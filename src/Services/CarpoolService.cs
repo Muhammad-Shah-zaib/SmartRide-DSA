@@ -88,7 +88,7 @@ namespace SmartRide.src.Services
                 double totalCost = 0;
                 try
                 {
-                    var path = shortestPathFinder.Dijsktra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
+                    var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
                     userPriorityQueue.Enqueue((carpool, path), totalCost);
                 }
                 catch (ArgumentException ex)

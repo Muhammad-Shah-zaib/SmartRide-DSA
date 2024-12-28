@@ -51,6 +51,11 @@
                 _graph.AddEdge(destination, source, weight);
             }
         }
+        //print all the vertices
+        public void printVertices()
+        {
+            _graph.GetAllNodes().ToList().ForEach(vertex => Console.Write($"{vertex} "));
+        }
         public void LoadGraphFromDatabase()
         {
             // Clear current graph
