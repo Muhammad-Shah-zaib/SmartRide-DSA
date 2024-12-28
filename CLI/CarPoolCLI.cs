@@ -1,12 +1,10 @@
-﻿using SmartRide.src.Services;
-
-namespace SmartRide.CLI;
+﻿namespace SmartRide.CLI;
 
 public class CarPoolCLI(SmartRideDbContext context, UserDto currentUser)
 {
-    private readonly CarpoolService _carpoolService = new CarpoolService(context);
-    private readonly MapService _mapService = new MapService(context);
-    private readonly DriverRatingService _driverRatingService = new DriverRatingService(context);
+    private readonly CarpoolService _carpoolService = new(context);
+    private readonly MapService _mapService = new(context);
+    private readonly DriverRatingService _driverRatingService = new(context);
     private UserDto CurrentUser { get; set; } = currentUser;
 
     public void Run()
