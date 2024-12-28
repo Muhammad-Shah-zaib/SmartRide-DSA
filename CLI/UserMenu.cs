@@ -1,19 +1,12 @@
 ﻿namespace SmartRide.CLI;
 
-public class UserMenu
+public class UserMenu(SmartRideDbContext context, UserDto currentUser)
 {
-    private readonly MapService _mapService;
-    private readonly DriverService _driverService;
+    private readonly MapService _mapService = new MapService(context);
+    private readonly DriverService _driverService = new DriverService(context);
 
     // The current logged-in user
-    public UserDto CurrentUser { get; set; }
-
-    public UserMenu(SmartRideDbContext context, UserDto currentUser)
-    {
-        _mapService = new MapService(context);
-        _driverService = new DriverService(context);
-        CurrentUser = currentUser;
-    }
+    public UserDto CurrentUser { get; set; } = currentUser;
 
     public void Run()
     {
@@ -78,89 +71,7 @@ public class UserMenu
 
     public void Ride()
     {
-        Console.Clear();
-        Console.WriteLine("Let’s get you a ride!");
-
-        // Ask user for source and destination
-        Console.Write("Enter your current location (source): ");
-        string userSrc = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
-
-        Console.Write("Enter your destination: ");
-        string userDest = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
-
-        if (string.IsNullOrEmpty(userSrc) || string.IsNullOrEmpty(userDest))
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Source and destination cannot be empty. Please try again.");
-            Console.ResetColor();
-            return;
-        }
-
-        try
-        {
-            // Simulate the graph and driver data (these should ideally come from the system)
-            List<DriverDto> drivers = _driverService.GetAllDrivers(); // Fetch from database or mock data
-            if (drivers.Count == 0)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("No drivers available right now. You will be added to the queue.");
-                Console.ResetColor();
-                return;
-            }
-
-            // Call RideRequestMatching to get the nearest driver and path
-            var rideRequestMatching = new RideRequestMatching();
-            var (driver, path, cost) = rideRequestMatching.RequestMatching(_mapService._graph, userSrc, userDest, drivers);
-
-            // Display ride details
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("\nRide Details:");
-            Console.WriteLine($"Driver: {driver.Name}");
-            Console.WriteLine($"Driver Location: {driver.CurrentPosition.Name}");
-            Console.WriteLine($"Path: {string.Join(" -> ", path)}");
-            Console.WriteLine($"Total Cost: {cost:C}");
-            Console.ResetColor();
-
-            // Ask user to confirm ride
-            Console.Write("\nDo you want to proceed with this ride? (yes/no): ");
-            string confirmation = Console.ReadLine()?.Trim().ToLower() ?? "no";
-
-            if (confirmation != "yes")
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Ride cancelled.");
-                Console.ResetColor();
-                return;
-            }
-
-            // Simulate reaching destination
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("\nPress any key once you have reached your destination...");
-            Console.ReadKey();
-            Console.ResetColor();
-
-            // Ask for driver rating
-            Console.Write("\nThank you for riding with us! Would you like to rate your driver? (yes/no): ");
-            string rateConfirmation = Console.ReadLine()?.Trim().ToLower() ?? "no";
-
-            if (rateConfirmation == "yes")
-            {
-                Console.Write("Please give a rating (1-5): ");
-                string rating = Console.ReadLine()?.Trim() ?? "0";
-                Console.WriteLine($"You rated the driver {rating}/5. Thank you for your feedback!");
-                // Placeholder for saving the rating
-                // SaveDriverRating(driver, int.Parse(rating)); // Uncomment when implemented
-            }
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("Ride completed successfully! Have a great day!");
-            Console.ResetColor();
-        }
-        catch (Exception ex)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"Error: {ex.Message}");
-            Console.ResetColor();
-        }
+        RideCli rideCli = new(context, CurrentUser);
+        rideCli.Run();
     }
 }
