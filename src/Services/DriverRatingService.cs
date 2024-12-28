@@ -80,13 +80,12 @@ public class DriverRatingService
             existingRatings.Add(newRating);
         }
 
-        // Save to DB
+        // Save the new rating to the database
         _dbContext.Driverratings.Add(newRating);
-        _dbContext.SaveChanges();
 
-        // Recalculate average for the driver
-        var updatedAverage = existingRatings.Average(r => (double)r.Rating);
-        var ratingCount = existingRatings.Count;
+        // Recalculate the driver's average rating and rating count
+        var updatedAverage = existingRatings!.Average(r => (double)r.Rating);
+        var ratingCount = existingRatings!.Count;
 
         // Update the driver's entry in the heap
         var updatedRatingDto = new DriverRatingDto
@@ -97,6 +96,16 @@ public class DriverRatingService
         };
 
         _topDrivers.Insert(updatedRatingDto); // Insert the updated rating
+
+        // Update the driver's rating in the Drivers table
+        var driver = _dbContext.Drivers.FirstOrDefault(d => d.Id == driverId);
+        if (driver != null)
+        {
+            driver.Rating = (decimal?)updatedAverage; // Update the driver's rating
+        }
+
+        // Save changes to the database
+        _dbContext.SaveChanges();
     }
 
     // Get top rated drivers

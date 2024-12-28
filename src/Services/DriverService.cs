@@ -93,11 +93,10 @@ public class DriverService
 
         _driverMap.Put(driver.Email, driver);
     }
-    public List<DriverDto> GetAllDrivers()
+    public List<DriverDto> GetAllAvailableDrivers()
     {
-        return _driverMap.Values();
+        return _driverMap.Values().Where(driver => driver.IsAvailable).ToList();
     }
-
 
     public DriverDto? GetDriver(string email)
     {

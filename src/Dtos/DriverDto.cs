@@ -7,9 +7,9 @@ public class DriverDto : IComparable<DriverDto>
     public string LicenseNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public double Rating { get; set; } // out of 5
+    public bool IsAvailable { get; set; } = true;
 
     public Node CurrentPosition { get; set; } = new Node(); // current node
-
 
     int IComparable<DriverDto>.CompareTo(DriverDto? other)
     {

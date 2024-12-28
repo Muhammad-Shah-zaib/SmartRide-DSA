@@ -2,9 +2,6 @@
 
 public class UserMenu(SmartRideDbContext context, UserDto currentUser)
 {
-    private readonly MapService _mapService = new MapService(context);
-    private readonly DriverService _driverService = new DriverService(context);
-
     // The current logged-in user
     public UserDto CurrentUser { get; set; } = currentUser;
 
@@ -73,5 +70,9 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
     {
         RideCli rideCli = new(context, CurrentUser);
         rideCli.Run();
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.WriteLine("Press any key to continue.");
+        Console.ReadKey();
+        Console.ResetColor();
     }
 }

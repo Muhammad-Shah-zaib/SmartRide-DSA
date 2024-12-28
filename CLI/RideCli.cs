@@ -1,10 +1,14 @@
-﻿namespace SmartRide.CLI;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SmartRide.CLI;
 
 public class RideCli(SmartRideDbContext context, UserDto currentUser)
 {
-    private readonly MapService _mapService = new(context);
-    private readonly DriverService _driverService = new(context);
-    private readonly DriverRatingService _driverRatingService = new(context);
+    private readonly SmartRideDbContext _dbContext = context;
+    private readonly MapService _mapService = new MapService(context);
+    private readonly DriverService _driverService = new DriverService(context);
+    private readonly DriverRatingService _driverRatingService = new DriverRatingService(context);
+    private readonly RideRequestsQueueService _rideRequestsQueueService = new RideRequestsQueueService(context);
     public UserDto CurrentUser { get; set; } = currentUser;
 
     public void Run()
@@ -30,19 +34,30 @@ public class RideCli(SmartRideDbContext context, UserDto currentUser)
         try
         {
             // Simulate the graph and driver data (these should ideally come from the system)
-            List<DriverDto> drivers = _driverService.GetAllDrivers(); // Fetch from database or mock data
-            if (drivers.Count == 0)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("No drivers available right now. You will be added to the queue.");
-                Console.ResetColor();
-                return;
-            }
-
+            List<DriverDto> drivers = _driverService.GetAllAvailableDrivers(); // Fetch from database or mock data
+            
             // Call RideRequestMatching to get the nearest driver and path
             var rideRequestMatching = new RideRequestMatching();
             var (driver, path, cost) = rideRequestMatching.RequestMatching(_mapService._graph, userSrc, userDest, drivers);
 
+            if (drivers.Count == 0)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("No drivers available right now. You will be added to the queue.");
+                // Add ride request to the queue
+                _rideRequestsQueueService.AddRideRequest(new RideRequestDto
+                {
+                    UserId = CurrentUser.Id,
+                    Source = userSrc,
+                    Destination = userDest,
+                    RideTime = DateTime.Now
+                });
+                Console.WriteLine("You will be notified once a driver becomes available.");
+                Console.ResetColor();
+                return;
+            }
+
+            
             // Display ride details
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("\nRide Details:");
@@ -116,7 +131,6 @@ public class RideCli(SmartRideDbContext context, UserDto currentUser)
                     // Cheerful message after giving feedback
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine("\nWe appreciate your feedback! Your opinion makes us better.");
-
                     Console.ResetColor(); // reset console color
                 }
                 catch (Exception ex)
@@ -133,11 +147,26 @@ public class RideCli(SmartRideDbContext context, UserDto currentUser)
                 Console.ResetColor();
             }
 
+            // Create and add the completed ride to the Completedrides table
+            var completedRide = new Completedride
+            {
+                Userid = CurrentUser.Id,
+                Source = userSrc,
+                Destination = userDest,
+                Status = "completed",
+                Driverid = driver.Id,
+                Ridetime = DateTime.Now
+            };
+
+            _dbContext.Completedrides.Add(completedRide);
+            _dbContext.SaveChanges();
+
+            // Remove the ride from the queue
+            _rideRequestsQueueService.RemoveRideRequestIfInQueue(CurrentUser.Id);
+
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine("Ride completed successfully! Have a great day!");
             Console.ResetColor();
-            Console.WriteLine("\nPress any key to continue...");
-            Console.ReadKey(); // Wait for the user to press a key
         }
         catch (Exception ex)
         {
