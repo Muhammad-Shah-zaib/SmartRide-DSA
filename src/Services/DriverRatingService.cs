@@ -60,48 +60,41 @@ public class DriverRatingService
     {
         if (rating < 1 || rating > 5) throw new ArgumentException("Rating must be between 1 and 5.");
 
-        // Create a new rating and add to the in-memory collection
+        // Create a new rating
         var newRating = new Driverrating
         {
             Driverid = driverId,
             Rating = (decimal)rating,
-            Comment = comment,
+            Comment = comment ?? "", // Ensure comment is not null
             Createdat = DateTime.UtcNow
         };
 
-        // Add rating to the in-memory data structure
-        var existingRatings = _driverRatings.Get(driverId);
-        if (existingRatings == null)
-        {
-            _driverRatings.Put(driverId, new List<Driverrating> { newRating });
-        }
-        else
-        {
-            existingRatings.Add(newRating);
-        }
+        // Add to in-memory structure
+        var existingRatings = _driverRatings.Get(driverId) ?? new List<Driverrating>();
+        if (!_driverRatings.ContainsKey(driverId)) _driverRatings.Put(driverId, existingRatings);
+        existingRatings.Add(newRating);
 
         // Save the new rating to the database
         _dbContext.Driverratings.Add(newRating);
 
-        // Recalculate the driver's average rating and rating count
-        var updatedAverage = existingRatings!.Average(r => (double)r.Rating);
-        var ratingCount = existingRatings!.Count;
+        // Recalculate driver's average rating
+        var updatedAverage = existingRatings.Any() ? existingRatings.Average(r => (double)r.Rating) : 0;
+        var ratingCount = existingRatings.Count;
 
-        // Update the driver's entry in the heap
+        // Update driver's MaxHeap entry
         var updatedRatingDto = new DriverRatingDto
         {
             DriverId = driverId,
             AverageRating = updatedAverage,
             RatingCount = ratingCount
         };
+        _topDrivers.Insert(updatedRatingDto);
 
-        _topDrivers.Insert(updatedRatingDto); // Insert the updated rating
-
-        // Update the driver's rating in the Drivers table
+        // Update driver's rating in the database
         var driver = _dbContext.Drivers.FirstOrDefault(d => d.Id == driverId);
         if (driver != null)
         {
-            driver.Rating = (decimal?)updatedAverage; // Update the driver's rating
+            driver.Rating = (decimal?)updatedAverage;
         }
 
         // Save changes to the database

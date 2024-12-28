@@ -53,7 +53,7 @@ public class CarpoolService
             return null;
         }
 
-        var userPriorityQueue = new PriorityQueue<(CarpoolRideDto carpool, List<string> route), double>();
+        var userPriorityQueue = new PriorityQueue<(CarpoolRideDto carpool, List<string> route, double totalCost), double>();
         var shortestPathFinder = new ShortestPath<string>();
 
         foreach (var carpool in _carpools.Values.Where(c => c.Status == "ACTIVE"))
@@ -62,7 +62,7 @@ public class CarpoolService
             try
             {
                 var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
-                userPriorityQueue.Enqueue((carpool, path), totalCost);
+                userPriorityQueue.Enqueue((carpool, path, totalCost), totalCost);
             }
             catch (ArgumentException ex)
             {
@@ -72,27 +72,43 @@ public class CarpoolService
 
         while (userPriorityQueue.Count > 0)
         {
-            var (nearestCarpool, route) = userPriorityQueue.Dequeue();
+            var (nearestCarpool, route, totalCost) = userPriorityQueue.Dequeue();
 
             if (nearestCarpool.CurrentPassengers < nearestCarpool.MaxPassengers)
             {
-                Console.WriteLine($"Nearest carpool found: Carpool {nearestCarpool.CarpoolId}. Do you want to join? (yes/no)");
-                var response = Console.ReadLine()?.ToLower();
+                // Calculate estimated time
+                var estimatedTime = 1.45 * totalCost;
 
-                if (response == "yes")
+                // Calculate cost per passenger
+                var costPerPassenger = totalCost / nearestCarpool.CurrentPassengers + 1;
+
+                // Display carpool details
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine("-------------------");
+                Console.WriteLine($"\nNearest Carpool Found: Carpool ID {nearestCarpool.CarpoolId}");
+                Console.WriteLine($"Route: {nearestCarpool.Route}");
+                Console.WriteLine($"Total Cost: {totalCost:C2}");
+                Console.WriteLine($"Estimated Time: {estimatedTime:F2} minutes");
+                Console.WriteLine($"Current Passengers: {nearestCarpool.CurrentPassengers}/{nearestCarpool.MaxPassengers}");
+                Console.WriteLine($"Your Cost: {costPerPassenger:C2}");
+                Console.WriteLine("-------------------");
+                Console.ResetColor();
+
+                // Update carpool details
+                nearestCarpool.CurrentPassengers++;
+                nearestCarpool.UpdatedAt = DateTime.Now;
+
+                if (nearestCarpool.CurrentPassengers == nearestCarpool.MaxPassengers)
                 {
-                    nearestCarpool.CurrentPassengers++;
-                    nearestCarpool.UpdatedAt = DateTime.Now;
-
-                    if (nearestCarpool.CurrentPassengers == nearestCarpool.MaxPassengers)
-                    {
-                        nearestCarpool.Status = "FULL";
-                    }
-
-                    _carpools[nearestCarpool.CarpoolId] = nearestCarpool;
-                    UpdateCarpoolInDb(MapToEntity(nearestCarpool));
-                    return (nearestCarpool, route);
+                    nearestCarpool.Status = "FULL";
                 }
+
+                _carpools[nearestCarpool.CarpoolId] = nearestCarpool;
+                UpdateCarpoolInDb(MapToEntity(nearestCarpool));
+
+                Console.WriteLine($"\nYou have successfully joined Carpool {nearestCarpool.CarpoolId}.");
+                Console.WriteLine($"Your share of the cost is {costPerPassenger:C2}.");
+                return (nearestCarpool, route);
             }
         }
 
@@ -116,6 +132,16 @@ public class CarpoolService
         {
             Console.WriteLine($"Carpool with ID {carpoolId} not found.");
         }
+    }
+    public List<string> GetAvailableDestinations()
+    {
+        var destinations = _carpools.Values
+            .Where(c => c.Status == "ACTIVE" && c.CurrentPassengers < c.MaxPassengers)
+            .Select(c => c.Dest)
+            .Distinct()
+            .ToList();
+
+        return destinations;
     }
 
     public List<CarpoolRideDto> GetAllCarpools()
@@ -152,6 +178,7 @@ public class CarpoolService
         MaxPassengers = entity.MaxPassengers,
         CurrentPassengers = (int)entity.CurrentPassengers,
         Status = entity.Status,
+        TotalCost = entity.Totalcost,
         CreatedAt = (DateTime)entity.CreatedAt,
         UpdatedAt = (DateTime)entity.UpdatedAt,
         Src = entity.Src,
@@ -166,6 +193,7 @@ public class CarpoolService
         CurrentPassengers = dto.CurrentPassengers,
         Status = dto.Status,
         CreatedAt = dto.CreatedAt,
+        Totalcost = dto.TotalCost,
         UpdatedAt = dto.UpdatedAt,
         Src = dto.Src,
         Dest = dto.Dest

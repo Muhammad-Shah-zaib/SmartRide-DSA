@@ -44,6 +44,7 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
                 case "2":
                     // Call the method for Carpool Today
                     Console.WriteLine("Ready to share the ride? Let’s hit the road together!");
+                    this.CarPool();
                     // Add logic for carpool here
                     break;
 
@@ -70,6 +71,16 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
     {
         RideCli rideCli = new(context, CurrentUser);
         rideCli.Run();
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.WriteLine("Press any key to continue.");
+        Console.ReadKey();
+        Console.ResetColor();
+    }
+
+    public void CarPool()
+    {
+        CarPoolCLI carPoolCLI = new(context, CurrentUser);
+        carPoolCLI.Run();
         Console.ForegroundColor = ConsoleColor.Magenta;
         Console.WriteLine("Press any key to continue.");
         Console.ReadKey();

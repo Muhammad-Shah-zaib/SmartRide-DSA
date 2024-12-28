@@ -7,7 +7,7 @@ global using SmartRide.src.Utilities.GraphAlgos;
 global using SmartRide.src.Utilities.DefaultMap;
 
 using SmartRide.CLI;
-
+using SmartRide.src.Utilities.Carpool;
 
 var context = new SmartRideDbContext();
 
