@@ -3,7 +3,7 @@
 
 public class ShortestPath<T> where T : IComparable<T>
 {
-    public List<T> Dijsktra(Graph<T> adjacencyList, T start, T goal, ref double totalCost)
+    public List<T> Dijkstra(Graph<T> adjacencyList, T start, T goal, ref double totalCost)
     {
         var distances = new HashMap<T, double>();
         var Nodes = new HashMap<T, T>();
@@ -12,7 +12,6 @@ public class ShortestPath<T> where T : IComparable<T>
 
         // Initialize the total cost to 0
         totalCost = 0;
-
         // Checking if the start or goal nodes exist in the graph
         if (!adjacencyList.ContainsNode(start) || !adjacencyList.ContainsNode(goal))
             throw new ArgumentException("Start or goal node is not present in the graph.");
@@ -34,14 +33,14 @@ public class ShortestPath<T> where T : IComparable<T>
 
             // If the goal node is reached, we can break and trace the path
             if (EqualityComparer<T>.Default.Equals(currentNode, goal))
-            {
-                path = makepath(Nodes, start, goal);
-
+            { 
+                path = makepath(Nodes, start,goal);
+                
                 // Calculate total cost by summing up the weights of the edges in the path
                 totalCost = currentDistance; // Total cost is the distance of the goal node
                 break;
             }
-
+            
             // Visit each neighbor of the current node
             foreach (var neighbor in adjacencyList.GetNeighbors(currentNode))
             {
@@ -58,17 +57,18 @@ public class ShortestPath<T> where T : IComparable<T>
                 }
             }
         }
+        if (path.Count == 0)
+            throw new InvalidOperationException("No path exists between the start and goal nodes.");
 
         return path;
     }
 
 
     private List<T> makepath(HashMap<T,T> visited,T start,T goal)
-    {   
-
+    {
         var path = new List<T>();
         var current = goal;
-        
+       
         while (!EqualityComparer<T>.Default.Equals(current, start))
         {
             path.Add(current);

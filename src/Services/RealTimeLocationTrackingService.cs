@@ -26,7 +26,7 @@ public class RealTimeLocationTrackingService
                 continue;
 
             double cost = 0;
-            var route = _shortestPath.Dijsktra(
+            var route = _shortestPath.Dijkstra(
                 adjacencyList: _mapService._graph,
                 start: driver.CurrentPosition.Name,
                 goal: userLocation,
@@ -53,7 +53,7 @@ public class RealTimeLocationTrackingService
             throw new ArgumentException("Source and destination cannot be null or empty.");
 
         double cost = 0;
-        var route = _shortestPath.Dijsktra(
+        var route = _shortestPath.Dijkstra(
             adjacencyList: _mapService._graph,
             start: src,
             goal: dest,
