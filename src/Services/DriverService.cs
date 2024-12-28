@@ -17,6 +17,7 @@ public class DriverService
     }
     private void LoadDriversFromDb()
     {
+        this._driverMap.Clear();
         var drivers = _dbContext.Drivers.ToList();
         foreach (var driver in drivers)
         {
