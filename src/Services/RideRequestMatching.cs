@@ -12,7 +12,6 @@ namespace SmartRide.src.Services
 {
     public class RideRequestMatching<T> where T : IComparable<T>//input the node of the driver and the user
     {
-
         private readonly RideRequestDto _request ;
         public RideRequestMatching() {
             _request = new RideRequestDto();

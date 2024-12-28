@@ -7,8 +7,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+<<<<<<< HEAD
 	
 	<ItemGroup>
+=======
+
+  <ItemGroup>
+>>>>>>> e62f815ade58721347552469ea19eb3c1a0bc957
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.2">
       <PrivateAssets>all</PrivateAssets>
