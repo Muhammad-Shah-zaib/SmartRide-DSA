@@ -28,6 +28,7 @@ public class Carpool
                     CurrentPassengers = 1,
                     Status = "ACTIVE",
                     Src = "BOLAN CHOWK",
+                    Dest = "SNAKESIAN",
                     TotalCost= totalCost1,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
@@ -41,6 +42,7 @@ public class Carpool
                     Status = "ACTIVE",
                     TotalCost= totalCost2,
                     Src  = "IQBAL CHOWK",
+                    Dest = "SNAKESIAN",
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 },
