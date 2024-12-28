@@ -72,9 +72,9 @@ public class Main (SmartRideDbContext context)
     }
 
     // login user
-    private static void LoginUser()
+    private void LoginUser()
     {
-        Console.WriteLine("User login process...");
-        // Add your logic here
+        UserLogin userLogin = new(this._context);
+        userLogin.Run();
     }
 }

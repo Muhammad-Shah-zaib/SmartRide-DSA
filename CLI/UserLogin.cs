@@ -1,13 +1,13 @@
 ﻿namespace SmartRide.CLI;
 
-public class DriverLogin(SmartRideDbContext context)
+public class UserLogin(SmartRideDbContext context)
 {
-    private readonly DriverService _driverService = new(context);
+    private readonly UserService _userService = new UserService(context);
 
     public bool Run()
     {
         Console.Clear();
-        Console.WriteLine("Driver Login");
+        Console.WriteLine("User Login");
 
         int attempts = 0;
         const int maxAttempts = 3;
@@ -16,31 +16,32 @@ public class DriverLogin(SmartRideDbContext context)
         {
             try
             {
-                // Prompt driver for their credentials
+                // Prompt user for credentials
                 Console.Write("Enter your email: ");
                 string email = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
 
-                Console.Write("Enter your License Number: ");
-                string phoneNumber = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
+                Console.Write("Enter your phone number: ");
+                string phoneNumber = Console.ReadLine()?.Trim() ?? string.Empty;
 
-                // Validate the driver using the HashMap
-                if (_driverService.ValidateDriver(email, phoneNumber, out var driver))
+                // Validate user using HashMap
+                var user = _userService.GetUser(email);
+                if (user != null && user.PhoneNumber == phoneNumber)
                 {
-                    // Display success message and driver details
+                    // Successful login
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("\nLogin successful!");
                     Console.ResetColor();
 
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine("---------------------");
-                    Console.WriteLine($"ID: {driver!.Id}");
-                    Console.WriteLine($"Name: {driver.Name}");
-                    Console.WriteLine($"Email: {driver.Email}");
-                    Console.WriteLine($"License Number: {driver.LicenseNumber}");
+                    Console.WriteLine($"ID: {user.Id}");
+                    Console.WriteLine($"Name: {user.Name}");
+                    Console.WriteLine($"Email: {user.Email}");
+                    Console.WriteLine($"phoneNumber: {user.PhoneNumber}");
                     Console.WriteLine("---------------------");
                     Console.ResetColor();
 
-                    return true; // Exit after successful login
+                    return true; // Login successful
                 }
                 else
                 {
@@ -63,11 +64,10 @@ public class DriverLogin(SmartRideDbContext context)
             }
         }
 
-        // If the user fails all attempts
+        // If user fails all attempts
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("\nYou have exceeded the maximum number of login attempts. Access denied.");
         Console.ResetColor();
-        return false;
+        return false; // Login unsuccessful
     }
-
 }
