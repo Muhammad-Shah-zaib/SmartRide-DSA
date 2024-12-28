@@ -34,16 +34,20 @@ public class DriverRegistration(SmartRideDbContext context)
             };
 
             // Attempt to add the driver
+            Console.ForegroundColor = ConsoleColor.Green;
             _driverService.AddDriver(driver);
+            Console.ResetColor();
 
             Console.WriteLine("Driver registered successfully!");
             // print driverDetails
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine("---------------------");
             Console.WriteLine($"id: {driver.Id}");
             Console.WriteLine($"name: {driver.Name}");
             Console.WriteLine($"Email: {driver.Email}");
             Console.WriteLine($"LicenseNumber: {driver.LicenseNumber}");
             Console.WriteLine("---------------------");
+            Console.ResetColor();
         }
         catch (Exception ex)
         {

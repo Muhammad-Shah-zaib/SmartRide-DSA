@@ -54,6 +54,24 @@ public class DriverService
         }
     }
 
+    public bool ValidateDriver(string email, string licenseNumber, out DriverDto? driver)
+    {
+        driver = _driverMap.Get(email);
+
+        if (driver == null)
+        {
+            return false; // Driver not found
+        }
+
+        // Check if the phone number matches
+        if (driver.LicenseNumber == licenseNumber)
+        {
+            return true; // Validation successful
+        }
+
+        return false; // Validation failed
+    }
+
 
     public void AddDriver(DriverDto driver)
     {

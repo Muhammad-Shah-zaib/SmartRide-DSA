@@ -65,10 +65,10 @@ public class Main (SmartRideDbContext context)
     }
 
     // login Driver
-    private static void LoginDriver()
+    private  void LoginDriver()
     {
-        Console.WriteLine("Driver login process...");
-        // Add your logic here
+        DriverLogin driverLogin = new(this._context);
+        driverLogin.Run();
     }
 
     // login user

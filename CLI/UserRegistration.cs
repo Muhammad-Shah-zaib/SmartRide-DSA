@@ -25,7 +25,7 @@ public class UserRegistration(SmartRideDbContext context)
             phoneNumber = phoneNumber.Trim().ToUpper();
 
             // Construct a UserDto
-            UserDto user = new UserDto
+            UserDto user = new()
             {
                 Name = name,
                 Email = email,
