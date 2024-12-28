@@ -1,4 +1,4 @@
-﻿# PriorityQueues Class Documentation
+﻿﻿# PriorityQueues Class Documentation
 
 ## Namespace
 `SmartRide.src.DataStructures`
@@ -77,3 +77,4 @@ foreach (var item in items)
 {
     Console.WriteLine($"Item: {item.Item1}, Weight: {item.Item2}");
 }
+```

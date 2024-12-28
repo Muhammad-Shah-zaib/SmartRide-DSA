@@ -12,6 +12,7 @@ namespace SmartRide.src.Services
 {
     public class RideRequestMatching<T> where T : IComparable<T>//input the node of the driver and the user
     {
+
         private readonly RideRequestDto _request ;
         public RideRequestMatching() {
             _request = new RideRequestDto();
@@ -31,18 +32,19 @@ namespace SmartRide.src.Services
             //Priority Queue based on the distance
             PriorityQueues<DriverDto> NearestDrivers = new PriorityQueues<DriverDto>();
 
-
+            double totalcost = 0.0;
             //Calculates distance from all the drivers
             foreach (var driver in drivers)
             {
                 
-                var path = shortestpath.Dijsktra(map,ConvertToT(driver.CurrentPosition),user);
+                var path = shortestpath.Dijkstra(map,ConvertToT(driver.CurrentPosition.Name),user,ref totalcost);
+                
                 double distance = 0;
-
+                
                 //if path exists
-                if(path.Count != null && path.Count > 1)
+                if (path.Count != null && path.Count > 1)
                 {
-                    for(int i = 0; i < path.Count - 1; i++)
+                    for (int i = 0; i < path.Count - 1; i++)
                     {
                         distance += map.GetEdgeWeight(path[i], path[i + 1]);
 

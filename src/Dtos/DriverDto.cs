@@ -6,13 +6,15 @@ public class DriverDto : IComparable<DriverDto>
     public string Name { get; set; } = string.Empty;
     public string LicenseNumber { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-
-    public string CurrentPosition { get; set; }
     public double Rating { get; set; } // out of 5
-
     int IComparable<DriverDto>.CompareTo(DriverDto? other)
     {
         throw new NotImplementedException();
     }
+    public Node CurrentPosition { get; set; } = new Node(); // current node
+    
+
 }
+
+
 
