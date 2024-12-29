@@ -52,9 +52,15 @@
             }
         }
         //print all the vertices
-        public void printVertices()
+        public void PrintVertices()
         {
-            _graph.GetAllNodes().ToList().ForEach(vertex => Console.Write($"{vertex} "));
+            var nodes = _graph.GetAllNodes().ToList();
+            for (int i = 0; i < nodes.Count; i += 2)
+            {
+                string firstColumn = nodes[i].ToString();
+                string secondColumn = (i + 1 < nodes.Count) ? nodes[i + 1].ToString() : string.Empty;
+                Console.WriteLine($"{firstColumn,-15}{secondColumn}");
+            }
         }
         public void LoadGraphFromDatabase()
         {

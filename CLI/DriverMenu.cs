@@ -83,6 +83,12 @@ public class DriverMenu
                     break;
             }
         }
+
+        private void Rides()
+        {
+            Console.WriteLine("Rides: ");
+
+        }
     }
 
     private void UpdateEmail()
