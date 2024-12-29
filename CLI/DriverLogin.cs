@@ -3,7 +3,7 @@
 public class DriverLogin(SmartRideDbContext context)
 {
     private readonly DriverService _driverService = new(context);
-
+    private DriverMenu _drivermenu;
     public bool Run()
     {
         Console.Clear();
@@ -19,13 +19,13 @@ public class DriverLogin(SmartRideDbContext context)
                 // Prompt driver for their credentials
                 Console.Write("Enter your email: ");
                 string email = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
-
                 Console.Write("Enter your License Number: ");
                 string phoneNumber = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
 
                 // Validate the driver using the HashMap
                 if (_driverService.ValidateDriver(email, phoneNumber, out var driver))
                 {
+                    Console.Write($"{email} {phoneNumber}");
                     // Display success message and driver details
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("\nLogin successful!");
@@ -39,7 +39,8 @@ public class DriverLogin(SmartRideDbContext context)
                     Console.WriteLine($"License Number: {driver.LicenseNumber}");
                     Console.WriteLine("---------------------");
                     Console.ResetColor();
-
+                    _drivermenu = new DriverMenu(context,(DriverDto) driver);
+                    _drivermenu.Run();
                     return true; // Exit after successful login
                 }
                 else

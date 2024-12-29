@@ -1,4 +1,6 @@
-﻿namespace SmartRide.src.Services;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace SmartRide.src.Services;
 
 public class DriverService
 {
@@ -41,6 +43,7 @@ public class DriverService
             {
                 Id = driver.Id,
                 Name = driver.Name,
+                Email = driver.Email,
                 LicenseNumber = driver.Licensenumber,
                 Rating = driver.Rating.HasValue ? (double)driver.Rating.Value : 0.0,
                 CurrentPosition = new Node()
@@ -55,7 +58,6 @@ public class DriverService
     public bool ValidateDriver(string email, string licenseNumber, out DriverDto? driver)
     {
         driver = _driverMap.Get(email);
-
         if (driver == null)
         {
             return false; // Driver not found
@@ -110,5 +112,60 @@ public class DriverService
 
         _driverMap.Remove(email);
     }
+
+    public void UpdateDriverEmail(string oldEmail, string newEmail, SmartRideDbContext _context)
+    {
+        try
+        {
+            // Validate that the driver exists in the database
+            Console.WriteLine($"Searching for driver with email: {oldEmail}");
+            var driver = _context.Drivers.FirstOrDefault(d => d.Email.Trim().ToUpper() == oldEmail.Trim().ToUpper())
+                ?? throw new InvalidOperationException("Driver not found.");
+            Console.WriteLine($"Driver found: {driver.Name}");
+
+            // Check if the new email is not null and valid
+            if (string.IsNullOrEmpty(newEmail))
+            {
+                throw new ArgumentException("New email cannot be null or empty.");
+            }
+
+            // Check if the new email already exists in the database
+            if (_context.Drivers.Any(d => d.Email == newEmail))
+            {
+                throw new InvalidOperationException($"The email {newEmail} is already in use.");
+            }
+
+            // Update the driver's email
+            driver.Email = newEmail;
+            var drive = _driverMap.Get(oldEmail);
+            _driverMap.Remove(oldEmail);
+            drive.Email = newEmail;
+            _driverMap.Put(newEmail, drive);
+            _context.SaveChanges();
+            Console.WriteLine("Email updated successfully.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+        }
+    }
+
+
+    public void UpdateDriver(SmartRideDbContext _context,DriverDto driver)
+    {
+        var existingDriver = _context.Drivers.FirstOrDefault(d => d.Email == driver.Email);
+        var drive = _driverMap.Get(driver.Email);
+        _driverMap.Remove(driver.Email);
+        if (existingDriver != null)
+            {
+                
+                existingDriver.Licensenumber = driver.LicenseNumber;
+                drive.LicenseNumber = driver.LicenseNumber;
+            _context.SaveChanges();
+            }
+        
+        _driverMap.Put(drive.Email , drive);
+    }
+        
 }
 

@@ -145,6 +145,11 @@ public class DeliveryService(SmartRideDbContext context, Graph<string> map)
         Console.ResetColor();
     }
 
+    int id_to_int(int? id)
+    {
+        return (int)id;
+    }
+
 
     // Single method to retrieve both package and driver by package ID
     public (PackageDto? package, DriverDto? driver) GetPackageAndDriverById(int packageId)
@@ -159,7 +164,7 @@ public class DeliveryService(SmartRideDbContext context, Graph<string> map)
             packageDto = new PackageDto
             {
                 PackageId = package.Packageid,
-                DriverId = package.Driverid,
+                DriverId = id_to_int(package.Driverid),
                 UserId = package.Userid,
                 Source = package.Source,
                 Destination = package.Destination,
