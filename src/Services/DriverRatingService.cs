@@ -165,4 +165,21 @@ public class DriverRatingService
             Comment = string.Join(", ", ratings.Select(r => r.Comment)) // Combine all comments
         };
     }
- }
+
+    // Get all comments for a specific driver from the HashMap
+    public List<string> GetAllDriverComments(int driverId)
+    {
+        this.LoadDriverRatings();
+        var ratings = _driverRatings.Get(driverId);
+
+        // If there are no ratings, return an empty list
+        if (ratings == null || !ratings.Any())
+        {
+            return new List<string> { "No comments available for this driver." };
+        }
+
+        // Extract and return all comments
+        return ratings.Select(r => r.Comment).ToList();
+    }
+
+}
