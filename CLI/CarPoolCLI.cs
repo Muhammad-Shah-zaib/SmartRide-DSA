@@ -62,7 +62,7 @@ public class CarPoolCLI(SmartRideDbContext context, UserDto currentUser)
             Console.WriteLine($"\nYour Route to {carpool.Src} => {string.Join(" -> ", route)}");
             Console.ResetColor();
 
-            Console.WriteLine ($"\nYour Route to {carpool.Src} => {string.Join(" -> ", route)}");
+            Console.WriteLine($"\nYour Route to {carpool.Src} => {string.Join(" -> ", route)}");
             Console.ResetColor();
 
             Console.WriteLine("\nDo you want to join this carpool? (yes/no):");
