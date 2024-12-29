@@ -61,8 +61,18 @@ public class CarpoolService
             double totalCost = 0;
             try
             {
-                var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
-                userPriorityQueue.Enqueue((carpool, path, totalCost), totalCost);
+                if (carpool.Status != "ACTIVE") continue;
+
+                double totalCost = 0;
+                try
+                {
+                    var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
+                    userPriorityQueue.Enqueue((carpool, path), totalCost);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine("Error calculating path for carpool: {ex.Message}");
+                }
             }
             catch (ArgumentException ex)
             {
