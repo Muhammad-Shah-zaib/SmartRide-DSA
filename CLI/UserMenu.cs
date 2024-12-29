@@ -2,6 +2,8 @@
 
 public class UserMenu(SmartRideDbContext context, UserDto currentUser)
 {
+    private readonly UserRideHistoryService _userRideHistoryService = new(context);
+
     // The current logged-in user
     public UserDto CurrentUser { get; set; } = currentUser;
 
@@ -20,8 +22,8 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
             }
             else
             {
-                Console.WriteLine("Please log in. Press any key to continue.");
-                Console.ReadLine();
+                Console.WriteLine("Please log in");
+                Prompt.PressKeyToContinue();
                 return; // Exit the menu if no user is logged in
             }
 
@@ -30,7 +32,8 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
             Console.WriteLine("1. Take a Ride");
             Console.WriteLine("2. Go with Carpool Today");
             Console.WriteLine("3. Deliver/Receive a Package");
-            Console.WriteLine("4. Log out");
+            Console.WriteLine("4. Show User Rides");
+            Console.WriteLine("5. Log out");
 
             string choice = Console.ReadLine()?.Trim() ?? "";
 
@@ -45,16 +48,19 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
                     // Call the method for Carpool Today
                     Console.WriteLine("Ready to share the ride? Let’s hit the road together!");
                     this.CarPool();
-                    // Add logic for carpool here
                     break;
 
                 case "3":
                     // Call the method for package delivery
-                    this. PackageDelivery();
-                    // Add logic for package delivery here
+                    this.PackageDelivery();
                     break;
 
                 case "4":
+                    // Show user rides
+                    this.ShowUserRides();
+                    break;
+
+                case "5":
                     // Log out the user
                     Console.WriteLine("Logging out... Safe travels!");
                     CurrentUser = null; // Clear the current user session
@@ -87,16 +93,58 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
         Console.ResetColor();
     }
 
-    public void PackageDelivery() 
+    public void PackageDelivery()
     {
         MapService mapService = new(context);
-        PackageDeliveryCli packageDeliveryCli = 
+        PackageDeliveryCli packageDeliveryCli =
             new(
-                context: context, 
+                context: context,
                 currentUser: CurrentUser,
                 map: mapService._graph
             );
 
         packageDeliveryCli.Run();
     }
+
+    public void ShowUserRides()
+    {
+        Console.Clear();
+        Console.WriteLine("Your Ride History:");
+
+        try
+        {
+            var userRides = _userRideHistoryService.GetUserRideHistory(CurrentUser.Id);
+
+            if (!userRides.Any())
+            {
+                Console.WriteLine("No rides found. Looks like it’s time to take your first ride!");
+            }
+            else
+            {
+                int rideCount = 1;
+                foreach (var ride in userRides)
+                {
+                    Console.WriteLine($"\nRide {rideCount}:");
+                    Console.WriteLine($"- Ride ID: {ride.Id}");
+                    Console.WriteLine($"- Start Location: {ride.RideStartLocation}");
+                    Console.WriteLine($"- End Location: {ride.RideEndLocation}");
+                    Console.WriteLine($"- Distance: {ride.RideDistance} km");
+                    Console.WriteLine($"- Duration: {ride.RideDuration} mins");
+                    Console.WriteLine($"- Date: {ride.RideDate:MM/dd/yyyy}");
+                    Console.WriteLine($"- Cost: {ride.RideCost:C}");
+                    rideCount++;
+                }
+            }
+        }
+        catch (KeyNotFoundException e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        Console.ForegroundColor = ConsoleColor.Magenta;
+        Console.WriteLine("\nPress any key to return to the main menu.");
+        Console.ReadKey();
+        Console.ResetColor();
+    }
+
 }

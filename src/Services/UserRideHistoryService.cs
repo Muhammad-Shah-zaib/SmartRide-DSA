@@ -3,12 +3,14 @@
     public class UserRideHistoryService
     {
         private readonly SmartRideDbContext _dbContext;
+        private readonly MapService _mapService;
         private readonly HashMap<int, DoublyLinkedList<UserRideHistoryDto>> _rideHistoryMap;
 
         public UserRideHistoryService(SmartRideDbContext dbContext)
         {
             _dbContext = dbContext;
             _rideHistoryMap = new HashMap<int, DoublyLinkedList<UserRideHistoryDto>>(100);
+            _mapService = new(dbContext);
 
             // Load all user rides into the HashMap on initialization
             LoadRidesFromHistory();
@@ -17,21 +19,24 @@
         // Loads all rides from the database into the HashMap
         private void LoadRidesFromHistory()
         {
-            var rides = _dbContext.Userridehistories.ToList();
+            _rideHistoryMap.Clear();
+            var rides = _dbContext.Completedrides.ToList();
             foreach (var ride in rides)
             {
                 var rideDto = new UserRideHistoryDto
                 {
                     Id = ride.Id,
                     UserId = ride.Userid,
-                    RideStartLocation = ride.Ridestartlocation,
-                    RideEndLocation = ride.Rideendlocation,
-                    RideDistance = ride.Ridedistance,
-                    RideDuration = ride.Rideduration,
-                    RideDate = ride.Ridedate,
-                    RideCost = ride.Ridecost
+                    RideStartLocation = ride.Source,
+                    RideEndLocation = ride.Destination,
+                    RideDate = ride.Ridetime,
                 };
+                ShortestPath<string> shortestPath = new();
+                var totalCost = 0.0;
+                shortestPath.Dijkstra(_mapService._graph, rideDto.RideStartLocation, rideDto.RideEndLocation, ref totalCost);
 
+                rideDto.RideDistance = (decimal)totalCost;
+                
                 if (!_rideHistoryMap.ContainsKey(ride.Userid))
                 {
                     _rideHistoryMap.Put(ride.Userid, new DoublyLinkedList<UserRideHistoryDto>());
@@ -73,6 +78,7 @@
         // Gets all rides for a specific user
         public IEnumerable<UserRideHistoryDto> GetUserRideHistory(int userId)
         {
+            LoadRidesFromHistory();
             if (!_rideHistoryMap.ContainsKey(userId))
                 throw new KeyNotFoundException($"No ride history found for user ID {userId}.");
 
