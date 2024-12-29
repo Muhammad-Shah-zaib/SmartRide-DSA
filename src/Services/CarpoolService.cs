@@ -1,18 +1,14 @@
-﻿using System.Collections.Concurrent;
-
-namespace SmartRide.src.Services;
+﻿namespace SmartRide.src.Services;
 
 public class CarpoolService
 {
-    private readonly ConcurrentDictionary<int, CarpoolRideDto> _carpools; // Key: CarpoolId, Value: CarpoolRideDto
-    private readonly PriorityQueue<CarpoolRideDto, int> _priorityQueue; // Priority based on proximity or other factors
+    private readonly HashMap<int, CarpoolRideDto> _carpools;
     private readonly SmartRideDbContext _dbContext;
 
     public CarpoolService(SmartRideDbContext dbContext)
     {
         _dbContext = dbContext;
-        _carpools = new ConcurrentDictionary<int, CarpoolRideDto>();
-        _priorityQueue = new PriorityQueue<CarpoolRideDto, int>();
+        _carpools = new HashMap<int, CarpoolRideDto>();
 
         LoadCarpoolsFromDb();
     }
@@ -23,7 +19,7 @@ public class CarpoolService
         foreach (var record in carpoolRecords)
         {
             var carpoolRideDto = MapToDto(record);
-            _carpools[carpoolRideDto.CarpoolId] = carpoolRideDto;
+            _carpools.Put(carpoolRideDto.CarpoolId, carpoolRideDto);
         }
     }
 
@@ -40,7 +36,7 @@ public class CarpoolService
         _dbContext.SaveChanges();
         newCarpool.CarpoolId = newRecordPool.CarpoolId;
 
-        _carpools[newCarpool.CarpoolId] = newCarpool;
+        _carpools.Put(newCarpool.CarpoolId, newCarpool);
 
         Console.WriteLine($"New carpool {newCarpool.CarpoolId} has been added.");
     }
@@ -56,13 +52,24 @@ public class CarpoolService
         var userPriorityQueue = new PriorityQueue<(CarpoolRideDto carpool, List<string> route, double totalCost), double>();
         var shortestPathFinder = new ShortestPath<string>();
 
-        foreach (var carpool in _carpools.Values.Where(c => c.Status == "ACTIVE"))
+        foreach (var carpool in _carpools.Values().Where(c => c.Status == "ACTIVE"))
         {
             double totalCost = 0;
             try
             {
-                var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
-                userPriorityQueue.Enqueue((carpool, path, totalCost), totalCost);
+                if (carpool.Status != "ACTIVE") continue;
+
+                try
+                {
+                    var path = shortestPathFinder.Dijkstra(graph, userSrc.ToUpper(), carpool.Src.ToUpper(), ref totalCost);
+
+                    // Enqueue the tuple with the carpool, path (route), and totalCost
+                    userPriorityQueue.Enqueue((carpool, path, totalCost), totalCost);
+                }
+                catch (ArgumentException ex)
+                {
+                    Console.WriteLine($"Error calculating path for carpool: {ex.Message}");
+                }
             }
             catch (ArgumentException ex)
             {
@@ -80,7 +87,7 @@ public class CarpoolService
                 var estimatedTime = 1.45 * totalCost;
 
                 // Calculate cost per passenger
-                var costPerPassenger = totalCost / nearestCarpool.CurrentPassengers + 1;
+                var costPerPassenger = totalCost / (nearestCarpool.CurrentPassengers + 1);
 
                 // Display carpool details
                 Console.ForegroundColor = ConsoleColor.Cyan;
@@ -103,7 +110,7 @@ public class CarpoolService
                     nearestCarpool.Status = "FULL";
                 }
 
-                _carpools[nearestCarpool.CarpoolId] = nearestCarpool;
+                _carpools.Put(nearestCarpool.CarpoolId, nearestCarpool);
                 UpdateCarpoolInDb(MapToEntity(nearestCarpool));
 
                 Console.WriteLine($"\nYou have successfully joined Carpool {nearestCarpool.CarpoolId}.");
@@ -118,12 +125,13 @@ public class CarpoolService
 
     public void EndCarpool(int carpoolId)
     {
-        if (_carpools.TryGetValue(carpoolId, out var carpool))
+        if (_carpools.ContainsKey(carpoolId))
         {
+            var carpool = _carpools.Get(carpoolId);
             carpool.Status = "COMPLETED";
             carpool.UpdatedAt = DateTime.Now;
 
-            _carpools[carpoolId] = carpool;
+            _carpools.Put(carpoolId, carpool);
             UpdateCarpoolInDb(MapToEntity(carpool));
 
             Console.WriteLine($"Carpool {carpoolId} has been marked as completed.");
@@ -133,9 +141,10 @@ public class CarpoolService
             Console.WriteLine($"Carpool with ID {carpoolId} not found.");
         }
     }
+
     public List<string> GetAvailableDestinations()
     {
-        var destinations = _carpools.Values
+        var destinations = _carpools.Values()
             .Where(c => c.Status == "ACTIVE" && c.CurrentPassengers < c.MaxPassengers)
             .Select(c => c.Dest)
             .Distinct()
@@ -146,7 +155,7 @@ public class CarpoolService
 
     public List<CarpoolRideDto> GetAllCarpools()
     {
-        var allCarpools = _carpools.Values.ToList();
+        var allCarpools = _carpools.Values().ToList();
 
         foreach (var carpool in allCarpools)
         {
