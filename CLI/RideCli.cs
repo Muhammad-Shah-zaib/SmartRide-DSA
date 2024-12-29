@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace SmartRide.CLI;
+﻿namespace SmartRide.CLI;
 
 public class RideCli(SmartRideDbContext context, UserDto currentUser)
 {
@@ -15,8 +13,14 @@ public class RideCli(SmartRideDbContext context, UserDto currentUser)
     {
         Console.Clear();
         Console.WriteLine("Let’s get you a ride!");
-
+        Console.WriteLine("\n\n\n");
+        //Console.WriteLine("--------------------------------");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        
+        _mapService.PrintVertices(); // Print available locations
         // Ask user for source and destination
+        Console.WriteLine("\n\n\n");
+        Console.ResetColor();
         Console.Write("Enter your current location (source): ");
         string userSrc = Console.ReadLine()?.Trim().ToUpper() ?? string.Empty;
 

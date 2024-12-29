@@ -206,6 +206,12 @@ namespace SmartRide.CLI
                 }
             }
         }
+
+        private void Rides()
+        {
+            Console.WriteLine("Rides: ");
+
+        }
     }
 }
 
