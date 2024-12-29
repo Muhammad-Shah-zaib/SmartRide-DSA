@@ -133,4 +133,36 @@ public class DriverRatingService
         var ratings = _driverRatings.Get(driverId);
         return ratings?.Count ?? 0;
     }
-}
+
+    // Get the average rating for a specific driver from the database
+    public DriverRatingDto GetDriverRating(int driverId)
+    {       
+        // Retrieve ratings for the driver
+        var ratings = _driverRatings.Get(driverId);
+
+        if (ratings == null || !ratings.Any())
+        {
+            // Return a default value if no ratings exist for the driver
+            return new DriverRatingDto
+            {
+                DriverId = driverId,
+                AverageRating = 0,
+                RatingCount = 0,
+                Comment = "No ratings yet."
+            };
+        }
+
+        // Calculate the average rating
+        var averageRating = ratings.Average(r => (double)r.Rating);
+        var ratingCount = ratings.Count;
+
+        // Create a DriverRatingDto to return
+        return new DriverRatingDto
+        {
+            DriverId = driverId,
+            AverageRating = averageRating,
+            RatingCount = ratingCount,
+            Comment = string.Join(", ", ratings.Select(r => r.Comment)) // Combine all comments
+        };
+    }
+ }

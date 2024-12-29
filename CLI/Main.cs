@@ -1,6 +1,6 @@
 ﻿namespace SmartRide.CLI;
 
-public class Main (SmartRideDbContext context)
+public class Main(SmartRideDbContext context)
 {
     private readonly SmartRideDbContext _context = context;
 
