@@ -12,6 +12,7 @@ SmartRide.ConsoleApp/
 ├── Program.cs         # Entry point of the application
 ├── Models             # DataBase context (via scaffold)
 ├── src/
+│   |	├── CLI/				 # Contains CLI related Classes
 │   │   ├── Dtos/                # Contains your data models (e.g., User, Driver, Ride)
 │   │   ├── Services/            # Contains services for handling business logic
 │   │   ├── DataStructures/      # Custom implementations of data structures

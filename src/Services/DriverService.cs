@@ -17,6 +17,7 @@ public class DriverService
     }
     private void LoadDriversFromDb()
     {
+        this._driverMap.Clear();
         var drivers = _dbContext.Drivers.ToList();
         foreach (var driver in drivers)
         {
@@ -53,6 +54,24 @@ public class DriverService
         }
     }
 
+    public bool ValidateDriver(string email, string licenseNumber, out DriverDto? driver)
+    {
+        driver = _driverMap.Get(email);
+
+        if (driver == null)
+        {
+            return false; // Driver not found
+        }
+
+        // Check if the phone number matches
+        if (driver.LicenseNumber == licenseNumber)
+        {
+            return true; // Validation successful
+        }
+
+        return false; // Validation failed
+    }
+
 
     public void AddDriver(DriverDto driver)
     {
@@ -73,6 +92,10 @@ public class DriverService
         driver.Id = newDriver.Id;
 
         _driverMap.Put(driver.Email, driver);
+    }
+    public List<DriverDto> GetAllAvailableDrivers()
+    {
+        return _driverMap.Values().Where(driver => driver.IsAvailable).ToList();
     }
 
     public DriverDto? GetDriver(string email)
