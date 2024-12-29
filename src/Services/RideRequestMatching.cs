@@ -1,63 +1,49 @@
-﻿global using SmartRide.src.DataStructures;
-using SmartRide.src.Dtos;
-using SmartRide.Models;
-using SmartRide.src.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SmartRide.src.Utilities.GraphAlgos;
-namespace SmartRide.src.Services
+﻿namespace SmartRide.src.Services
 {
-    public class RideRequestMatching<T> where T : IComparable<T>//input the node of the driver and the user
+    public class RideRequestMatching
     {
-        private readonly RideRequestDto _request ;
-        public RideRequestMatching() {
-            _request = new RideRequestDto();
-        }
-        private T ConvertToT(string input)
+        public (DriverDto driver, List<string> path, double totalCost) RequestMatching(Graph<string> map, string userSrc, string userDest, List<DriverDto> drivers)
         {
-            return (T)Convert.ChangeType(input, typeof(T));
-        }
+            if (drivers == null || drivers.Count == 0)
+                throw new InvalidOperationException("No drivers available.");
 
-        public DriverDto RequestMatching(Graph<T> map, T user, List<DriverDto> drivers)
-        {
-            var shortestpath = new ShortestPath<T>();
+            var shortestPath = new ShortestPath<string>();
+            var nearestDrivers = new PriorityQueues<DriverDto>();
+            double driverToUserCost = 0.0;
 
-            //Tracks the minimum distance
-            double minimumdistance = double.MaxValue;
-
-            //Priority Queue based on the distance
-            PriorityQueues<DriverDto> NearestDrivers = new PriorityQueues<DriverDto>();
-
-            double totalcost = 0.0;
-            //Calculates distance from all the drivers
+            // Calculate distance from each driver to the user source
             foreach (var driver in drivers)
             {
-                
-                var path = shortestpath.Dijkstra(map,ConvertToT(driver.CurrentPosition.Name),user,ref totalcost);
-                
-                double distance = 0;
-                
-                //if path exists
-                if (path.Count != null && path.Count > 1)
+                try
                 {
-                    for (int i = 0; i < path.Count - 1; i++)
+                    var pathToUser = shortestPath.Dijkstra(map, driver.CurrentPosition.Name, userSrc, ref driverToUserCost);
+                    if (pathToUser.Count > 0)
                     {
-                        distance += map.GetEdgeWeight(path[i], path[i + 1]);
-
+                        // Add driver to the priority queue
+                        nearestDrivers.Enqueue(driver, driverToUserCost);
                     }
-
-
-                    //storing in the queue
-                    NearestDrivers.Enqueue(driver, distance);
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle unreachable drivers (e.g., disconnected graph)
+                    Console.WriteLine($"Driver {driver.Name} is unreachable. Reason: {ex.Message}");
                 }
             }
 
-            //returns the driver with the least distance
-            var (ur_driver,dist) = NearestDrivers.Dequeue();
-            return ur_driver;
+            // Select the nearest driver
+            if (nearestDrivers.Count == 0)
+                throw new InvalidOperationException("No drivers can reach your location.");
+
+            var (nearestDriver, _) = nearestDrivers.Dequeue();
+
+            // Calculate the shortest path and total cost from user source to destination
+            double userTripCost = 0.0;
+            var userTripPath = shortestPath.Dijkstra(map, userSrc, userDest, ref userTripCost);
+
+            if (userTripPath == null || userTripPath.Count == 0)
+                throw new InvalidOperationException("No path exists between the source and destination.");
+
+            return (nearestDriver, userTripPath, userTripCost);
         }
     }
 }

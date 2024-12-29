@@ -50,7 +50,7 @@ public class UserService
         _userMap.Put(u.Email, user);
     }
 
-    public UserDto GetUser(string email)
+    public UserDto? GetUser(string email)
     {
         return _userMap.Get(email);
     }
