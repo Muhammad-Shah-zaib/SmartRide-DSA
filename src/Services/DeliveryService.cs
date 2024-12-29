@@ -1,50 +1,51 @@
 namespace SmartRide.src.Services;
 
-public class DeliveryService
+public class DeliveryService(SmartRideDbContext context, Graph<string> map)
 {
-    //map 
-    public Graph<string> map;
-    private SmartRideDbContext _dbcontext;
-    public DeliveryService(SmartRideDbContext dbcontext,Graph<string> map)
-
-    {
-        _dbcontext = dbcontext ?? throw new ArgumentNullException(nameof(dbcontext)); ;
-        this.map = map;
-    }
+    public Graph<string> map = map;
+    private readonly SmartRideDbContext _dbcontext = context;
+    private readonly DriverService _driverService = new(context);
 
     private T ConvertToT<T>(string input)
     {
         return (T)Convert.ChangeType(input, typeof(T));
     }
-    //Updates the status of the package to picked after it has been assigned to a driver
-    public void UpdatePackageStatus(PackageDto package, UserDto user)
+
+    // Updates the status of the package to picked after it has been assigned to a driver
+    public void UpdatePackageStatus(PackageDto package, int userId, int driverId)
     {
-        package.Status = "Picked";
+        package.Status = "Assigned".ToUpper();
         var pack = new Package
         {
-            Packageid = package.PackageId,
-            Userid = user.Id,
+            Userid = userId,
             Source = package.Source,
+            Driverid = driverId,
             Destination = package.Destination,
             Status = package.Status
         };
 
-        try { 
-            //insert it into the table
+        try
+        {
+            // Insert it into the table
             _dbcontext.Packages.Add(pack);
             _dbcontext.SaveChanges();
+            package.PackageId = pack.Packageid;
         }
         catch (Exception e)
         {
-            Console.WriteLine(e.InnerException.Message);
+            Console.WriteLine(e.InnerException?.Message);
         }
-        Console.WriteLine($"The package is {package.Status}");
 
+        // Display in green for success
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"The package is {package.Status}");
+        Console.ResetColor();
     }
-    //Status update after the package is delivered
+
+    // Status update after the package is delivered
     public void MarkPackageAsDelivered(PackageDto package)
     {
-        if (package == null) throw new ArgumentNullException(nameof(package));
+        ArgumentNullException.ThrowIfNull(package);
 
         package.Status = "Delivered";
 
@@ -58,62 +59,127 @@ public class DeliveryService
             {
                 _dbcontext.SaveChanges();
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.InnerException.Message);
             }
+
+            // Display in green for success
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Package {package.PackageId} has been marked as delivered.");
+            Console.ResetColor();
         }
         else
         {
+            // Display in red for error
+            Console.ForegroundColor = ConsoleColor.Red;
             throw new InvalidOperationException($"Package with ID {package.PackageId} not found.");
         }
+
     }
-    //finds the nearest driver for the package
-    // In the DeliveryService class
 
-    // In the DeliveryService class
-
-    public void Assign_package(UserDto user, PackageDto package, List<DriverDto> drivers)
+    // Finds the nearest driver for the package
+    public void AssignDriver(int userId, PackageDto package, List<DriverDto> drivers)
     {
-        if (user == null) throw new ArgumentNullException(nameof(user));
-        if (package == null) throw new ArgumentNullException(nameof(package));
+        ArgumentNullException.ThrowIfNull(userId);
+        ArgumentNullException.ThrowIfNull(package);
         if (drivers == null || drivers.Count == 0) throw new ArgumentException("No drivers available.");
 
-        // Instantiate without the generic argument
+        // Instantiate RideRequestMatching
         var req_matching = new RideRequestMatching();
 
-        // Call RequestMatching with appropriate parameters (user's current position, source, and destination)
-        var (driver, _, _) = req_matching.RequestMatching(map, user.CurrentPosition, package.Destination, drivers);
+        // Call RequestMatching with appropriate parameters
+        var (driver, route, totalCost) = req_matching.RequestMatching(map, package.Source, package.Destination, drivers);
 
-        if (driver != null)
+        // If a driver is found
+        if (driver == null)
         {
-            UpdatePackageStatus(package, user); // Updates the status
+            // Display in red for no available driver
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Unfortunately, no driver is available for the package right now.");
+            Console.ResetColor();
+            return;
+        }
+
+        // Show the total cost in yellow and ask the user for confirmation
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"\nThe total cost for this delivery will be: {totalCost:C}");
+        Console.ResetColor();
+
+        Console.Write("\nDo you want to proceed with this delivery? (Yes/No): ");
+        string userResponse = Console.ReadLine()?.Trim().ToUpper() ?? "no";
+
+        if (userResponse == "YES")
+        {
+            // Proceed with updating the package status and assigning the driver
+            UpdatePackageStatus(package, userId, driver.Id);
+
+            // Display driver info in green
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Driver {driver.Name} has been assigned to deliver package {package.PackageId}.");
+            Console.WriteLine($"Route of your package: {string.Join(" -> ", route)}");
+            Console.WriteLine($"Package Id: {package.PackageId} -- Keep this ID safe, you will need it to mark the package as complete.");
+            Console.ResetColor();
+
         }
         else
         {
-            Console.WriteLine("No driver available");
-        }
-
-        // Question about the current location
-        Console.WriteLine("Have you delivered the package?\nyes or no\n");
-        var loc = Console.ReadLine().ToLower();
-
-        // Updates the driver location
-        if (loc == "yes")
-        {
-            driver.CurrentPosition.Name = package.Destination;
-        }
-
-        if (driver.CurrentPosition.Name == package.Destination)
-        {
-            MarkPackageAsDelivered(package);
-            Console.WriteLine($"Package {package.PackageId} has been delivered.");
-        }
-        else
-        {
-            Console.WriteLine("Package could not be delivered");
+            // Display in red for no action
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("No action taken. Driver not assigned.");
+            Console.ResetColor();
         }
     }
 
+    public void CompleteDelivery(PackageDto package, DriverDto driver)
+    {
+        ArgumentNullException.ThrowIfNull(package);
+        ArgumentNullException.ThrowIfNull(driver);
 
+        // Directly mark the package as delivered
+        MarkPackageAsDelivered(package);
+
+        // Inform the user that the package has been successfully delivered
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"Package {package.PackageId} has been successfully delivered.");
+        Console.ResetColor();
+    }
+
+
+    // Single method to retrieve both package and driver by package ID
+    public (PackageDto? package, DriverDto? driver) GetPackageAndDriverById(int packageId)
+    {
+        // Retrieve the package from the database
+        var package = _dbcontext.Packages.FirstOrDefault(p => p.Packageid == packageId);
+
+        // Initialize PackageDto
+        PackageDto? packageDto = null;
+        if (package != null)
+        {
+            packageDto = new PackageDto
+            {
+                PackageId = package.Packageid,
+                DriverId = package.Driverid,
+                UserId = package.Userid,
+                Source = package.Source,
+                Destination = package.Destination,
+                Status = package.Status ?? "ASSIGNED"
+            };
+        }
+
+        // Retrieve the driver associated with the package using DriverId
+        DriverDto? driverDto = null;
+        if (packageDto != null && packageDto.DriverId != 0)
+        {
+            var driver = _dbcontext.Drivers.FirstOrDefault(d => d.Id == packageDto.DriverId);
+
+            if (driver != null)
+            {
+                driverDto = this._driverService.GetDriver(driver.Email.ToUpper());
+            }
+        }
+
+        // Return both PackageDto and DriverDto as a tuple
+        return (packageDto, driverDto);
+    }
 }

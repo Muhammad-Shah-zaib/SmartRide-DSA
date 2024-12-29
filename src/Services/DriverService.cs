@@ -1,6 +1,4 @@
-﻿using SmartRide.src.DataStructures;
-
-namespace SmartRide.src.Services;
+﻿namespace SmartRide.src.Services;
 
 public class DriverService
 {
@@ -27,7 +25,7 @@ public class DriverService
                 1 => "GATE-1".ToUpper(),
                 2 => "GATE-2".ToUpper(),
                 3 => "SUPREME COURT".ToUpper(),
-                _ => "WADERA CHOWK0.ToUpper()" // Default to empty string if not matching any of the specified IDs
+                _ => "WADERA CHOWK".ToUpper() // Default to empty string if not matching any of the specified IDs
             };
 
             var currentPositionType = driver.Id switch

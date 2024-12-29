@@ -50,7 +50,7 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
 
                 case "3":
                     // Call the method for package delivery
-                    Console.WriteLine("Package ready to be delivered? Let’s make it happen!");
+                    this. PackageDelivery();
                     // Add logic for package delivery here
                     break;
 
@@ -85,5 +85,18 @@ public class UserMenu(SmartRideDbContext context, UserDto currentUser)
         Console.WriteLine("Press any key to continue.");
         Console.ReadKey();
         Console.ResetColor();
+    }
+
+    public void PackageDelivery() 
+    {
+        MapService mapService = new(context);
+        PackageDeliveryCli packageDeliveryCli = 
+            new(
+                context: context, 
+                currentUser: CurrentUser,
+                map: mapService._graph
+            );
+
+        packageDeliveryCli.Run();
     }
 }
